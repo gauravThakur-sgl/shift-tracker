@@ -9,6 +9,8 @@ export const ShiftTracker = () => {
  const [status, setStatus] = useState("");
  const [totalTime, setTotalTime] = useState("");
  const [isShiftOver, setIsShiftOver] = useState(false);
+ const [shiftPopup, setShiftPopup] = useState(false);
+ const [shiftOverTime, setShiftOverTime] = useState("");
 
  useEffect(() => {
   const savedCheckInTime = localStorage.getItem("checkInTime");
@@ -43,7 +45,7 @@ export const ShiftTracker = () => {
 
  const handleCheckOut = () => {
   if (isShiftOver) {
-   alert("Shift is over. Please reset to check Out");
+   setShiftPopup(true);
    return;
   }
   if (checkInTime) {
@@ -59,6 +61,7 @@ export const ShiftTracker = () => {
     setIsShiftOver(true);
     setCheckoutPopup(true);
     setStatus("");
+    setShiftOverTime(`${hour} hour ${minute} minutes ${second} seconds`);
    } else {
     setStatus(
      `Checkout Failed, total elapsedTime ${hour} hour ${minute} minutes ${second} seconds`
@@ -68,6 +71,15 @@ export const ShiftTracker = () => {
  };
 
  const handleReset = () => {
+  setCheckInTime(null);
+  setCheckOutTime(null);
+  setStatus("");
+  setIsShiftOver(false);
+  localStorage.clear();
+ };
+
+ const handleShiftPopup = () => {
+  setShiftPopup(false);
   setCheckInTime(null);
   setCheckOutTime(null);
   setStatus("");
@@ -166,6 +178,22 @@ export const ShiftTracker = () => {
          className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
         >
          Close
+        </button>
+       </div>
+      </div>
+     )}
+     {shiftPopup && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-all duration-300">
+       <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center py-10">
+        <p className="text-lg font-semibold">Shift is over</p>
+        {checkInTime && (
+         <p className="mt-2">Total Shift Time {shiftOverTime}</p>
+        )}
+        <button
+         onClick={handleShiftPopup}
+         className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+        >
+         Click to reset
         </button>
        </div>
       </div>
