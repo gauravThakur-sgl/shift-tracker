@@ -102,9 +102,9 @@ export const ShiftTracker = () => {
        CheckIn Time: {checkInTime.toLocaleTimeString()}
       </p>
      )}
-     {checkOutTime && (
+     {shiftOverTime && (
       <p className="text-center text-green-800 text-normal font-semibold rounded-md border border-green-800 p-2 bg-green-50 shadow-md border-opacity-50">
-       Last CheckOut Time: {checkOutTime.toLocaleTimeString()}
+       Last CheckOut Time: {shiftOverTime}
       </p>
      )}
      {status && (
@@ -187,7 +187,7 @@ export const ShiftTracker = () => {
        <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center py-10">
         <p className="text-lg font-semibold">Shift is over</p>
         {checkInTime && (
-         <p className="mt-2">Total Shift Time {shiftOverTime}</p>
+         <p className="mt-2">Total Shift Time: {shiftOverTime}</p>
         )}
         <button
          onClick={handleShiftPopup}
