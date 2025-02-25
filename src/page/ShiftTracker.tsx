@@ -57,7 +57,7 @@ export const ShiftTracker = () => {
       const hour = Math.floor(totalTime / (1000 * 60 * 60));
       console.log(totalTime, "totalTIme");
       setTotalTime(`${hour} hour ${minute} minutes ${second} seconds`);
-      if (totalTime / (1000 * 60 * 60) >= 9) {
+      if (totalTime / (1000 ) >= 9) {
         setIsShiftOver(true);
         setCheckoutPopup(true);
         setStatus("");
@@ -73,6 +73,7 @@ export const ShiftTracker = () => {
     setCheckOutTime(null);
     setStatus("");
     setIsShiftOver(false);
+    setShiftOverTime("");
     localStorage.clear();
   };
 
@@ -82,6 +83,7 @@ export const ShiftTracker = () => {
     setCheckOutTime(null);
     setStatus("");
     setIsShiftOver(false);
+    setShiftOverTime("");
     localStorage.clear();
   };
 
