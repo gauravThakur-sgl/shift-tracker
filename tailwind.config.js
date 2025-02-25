@@ -10,6 +10,9 @@ export default {
       screens: {
         mobile: '400px'
       },
+      spacing: {
+        'shift-tracker': '600px'
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
