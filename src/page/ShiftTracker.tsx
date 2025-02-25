@@ -64,7 +64,7 @@ export const ShiftTracker = () => {
     setShiftOverTime(`${hour} hour ${minute} minutes ${second} seconds`);
    } else {
     setStatus(
-     `Checkout Failed, total elapsedTime ${hour} hour ${minute} minutes ${second} seconds`
+     `Total elapsedTime : ${hour} hour ${minute} minutes ${second} seconds`
     );
    }
   }
@@ -94,7 +94,7 @@ export const ShiftTracker = () => {
      <h3 className="text-2xl font-bold text-blue-800 text-center">
       Shift Tracker
      </h3>
-     <p className="text-center font-semibold my-4">
+     <p className="text-center font-semibold my-2">
       Today's Date: {new Date().toLocaleDateString()}
      </p>
      {checkInTime && (
@@ -108,9 +108,12 @@ export const ShiftTracker = () => {
       </p>
      )}
      {status && (
-      <p className="text-center text-red-500 text-normal font-medium border border-red-500 bg-red-50 shadow-md border-opacity-50 p-2 rounded-md">
-       {status}
-      </p>
+      <div className="flex flex-col justify-center">
+       <p className="flex flex-col justify-center text-red-500 text-normal font-medium border border-red-500 bg-red-50 shadow-md border-opacity-50 p-2 rounded-md">
+        <span className="text-center">Checkout Failed</span>
+        <span className="text-sm font-semibold text-center pt-2">{status}</span>
+       </p>
+      </div>
      )}
 
      <div
@@ -128,7 +131,7 @@ export const ShiftTracker = () => {
       ) : (
        <Button
         onClick={handleCheckIn}
-        className="text-sm font-semibol shadow-md text-white bg-blue-900 hover:bg-blue-800 "
+        className="text-sm font-semibold shadow-md text-white bg-blue-800 hover:bg-blue-700 "
        >
         Check In
        </Button>
