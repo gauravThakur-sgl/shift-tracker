@@ -1,70 +1,65 @@
+import { ButtonShift } from "@/components/ButtonShift";
+import { InfoCard } from "@/components/InfoCard";
 import { Popup } from "@/components/Popup";
 import { Button } from "@/components/ui/button";
+import { convertTime } from "@/utils/convertTime";
 import { useEffect, useState } from "react";
 
 export const ShiftTracker = () => {
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
-  const [checkoutPopup, setCheckoutPopup] = useState(false);
   const [checkOutTime, setCheckOutTime] = useState<Date | null>(null);
   const [status, setStatus] = useState("");
   const [totalTime, setTotalTime] = useState("");
   const [isShiftOver, setIsShiftOver] = useState(false);
-  const [shiftPopup, setShiftPopup] = useState(false);
-  const [shiftOverTime, setShiftOverTime] = useState("");
+  const [popupState, setPopupState] = useState({
+    showPopup: false,
+    checkoutPopup: false,
+    shiftPopup: false,
+  });
 
   useEffect(() => {
     const savedCheckInTime = localStorage.getItem("checkInTime");
     const savedCheckOutTime = localStorage.getItem("checkOutTime");
+    const savedIsShiftOver = localStorage.getItem("isShiftOver");
     if (savedCheckInTime) {
       setCheckInTime(new Date(savedCheckInTime));
     }
     if (savedCheckOutTime) {
       setCheckOutTime(new Date(savedCheckOutTime));
     }
+    if (savedIsShiftOver) {
+      setIsShiftOver(Boolean(savedIsShiftOver));
+    }
   }, []);
 
-  useEffect(() => {
-    if (checkInTime) {
-      localStorage.setItem("checkInTime", checkInTime.toISOString());
-    } else {
-      localStorage.removeItem("checkInTime");
-    }
-  }, [checkInTime]);
-  useEffect(() => {
-    if (checkOutTime) {
-      localStorage.setItem("checkOutTime", checkOutTime.toISOString());
-    } else {
-      localStorage.removeItem("checkInTime");
-    }
-  }, [checkOutTime]);
-
   const handleCheckIn = () => {
-    setShowPopup(true);
-    setCheckInTime(new Date());
+    setPopupState({ ...popupState, showPopup: true });
+    const currentTime = new Date();
+    setCheckInTime(currentTime);
+    localStorage.setItem("checkInTime", currentTime.toISOString());
   };
 
   const handleCheckOut = () => {
     if (isShiftOver) {
-      setShiftPopup(true);
+      setPopupState({ ...popupState, shiftPopup: true });
       return;
     }
     if (checkInTime) {
       const checkOut = new Date();
       setCheckOutTime(checkOut);
-      const totalTime = checkOut.getTime() - checkInTime.getTime();
-      const second = Math.floor((totalTime / 1000) % 60);
-      const minute = Math.floor((totalTime / (1000 * 60)) % 60);
-      const hour = Math.floor(totalTime / (1000 * 60 * 60));
-      console.log(totalTime, "totalTIme");
-      setTotalTime(`${hour} hour ${minute} minutes ${second} seconds`);
-      if (totalTime / (1000 * 60 * 60) >= 9) {
+
+      const timeDifference = checkOut.getTime() - checkInTime.getTime();
+      setTotalTime(timeDifference.toString());
+
+      localStorage.setItem("checkOutTime", checkOut.toISOString());
+
+      if (Number(totalTime) / 1000 >= 9) {
         setIsShiftOver(true);
-        setCheckoutPopup(true);
+        localStorage.setItem("isShiftOver", String(isShiftOver));
+        setPopupState({ ...popupState, checkoutPopup: true });
         setStatus("");
-        setShiftOverTime(`${hour} hour ${minute} minutes ${second} seconds`);
       } else {
-        setStatus(`Total elapsedTime : ${hour} hour ${minute} minutes ${second} seconds`);
+        setStatus(`Total elapsedTime : ${convertTime(timeDifference)}`);
       }
     }
   };
@@ -74,20 +69,16 @@ export const ShiftTracker = () => {
     setCheckOutTime(null);
     setStatus("");
     setIsShiftOver(false);
-    setShiftOverTime("");
+    localStorage.setItem("isShiftOver", String(isShiftOver));
+
+    setTotalTime("");
     localStorage.clear();
   };
 
   const handleShiftPopup = () => {
-    setShiftPopup(false);
-    setCheckInTime(null);
-    setCheckOutTime(null);
-    setStatus("");
-    setIsShiftOver(false);
-    setShiftOverTime("");
-    localStorage.clear();
+    setPopupState({ ...popupState, shiftPopup: false });
+    handleReset();
   };
-
   return (
     <div className="h-screen flex justify-center items-center">
       <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4 min-h-shift-tracker pb-10 max-w-screen-mobile">
@@ -96,60 +87,43 @@ export const ShiftTracker = () => {
         <p className="text-center font-semibold my-2">Today's Date: {new Date().toLocaleDateString()}</p>
 
         {checkInTime && (
-          <p className="text-center text-blue-800 text-normal font-semibold rounded-md border border-blue-800 p-2 bg-blue-50 shadow-md border-opacity-50">
+          <InfoCard className="text-blue-800 bg-blue-50 border-blue-800">
             CheckIn Time: {checkInTime.toLocaleTimeString()}
-          </p>
+          </InfoCard>
         )}
 
-        {shiftOverTime && (
-          <p className="text-center text-green-800 text-normal font-semibold rounded-md border border-green-800 p-2 bg-green-50 shadow-md border-opacity-50">
-            Last CheckOut Time: {shiftOverTime}
-          </p>
+        {isShiftOver && (
+          <InfoCard className="text-green-800 border-green-800 bg-green-50">
+            Last CheckOut Time: {checkOutTime?.toLocaleTimeString()}
+          </InfoCard>
         )}
 
         {status && (
-          <div className="flex flex-col justify-center">
-            <p className="flex flex-col justify-center text-red-500 text-normal font-medium border border-red-500 bg-red-50 shadow-md border-opacity-50 p-2 rounded-md">
-              <span className="text-center">Checkout Failed</span>
-              <span className="text-sm font-semibold text-center pt-2">{status}</span>
-            </p>
-          </div>
+          <InfoCard className="text-red-500 border-red-500 bg-red-50 font-medium flex flex-col justify-center">
+            <span>Checkout Failed</span>
+            <span className="text-sm font-semibold  pt-2">{status}</span>
+          </InfoCard>
         )}
 
         <div className={`${checkInTime ? "mt-16" : "mt-20"} w-full flex flex-col gap-2`}>
           {checkInTime ? (
-            <Button
-              onClick={handleCheckOut}
-              className="bg-green-500 hover:bg-green-600 font-semibold text-sm text-white shadow-md"
-            >
-              Check Out
-            </Button>
+            <ButtonShift onClick={handleCheckOut} label="Check Out" className="bg-green-500 hover:bg-green-600 " />
           ) : (
-            <Button
-              onClick={handleCheckIn}
-              className="text-sm font-semibold shadow-md text-white bg-blue-800 hover:bg-blue-700 "
-            >
-              Check In
-            </Button>
+            <ButtonShift onClick={handleCheckIn} label="Check In" className="bg-blue-800 hover:bg-blue-700 " />
           )}
-          <Button
-            onClick={handleReset}
-            className="shadow-md text-white bg-red-500 text-sm font-semibold hover:bg-red-600"
-          >
-            Reset
-          </Button>
+          <ButtonShift onClick={handleReset} label="Reset" className="bg-red-500 hover:bg-red-600" />
         </div>
 
-        {checkoutPopup && (
+        {popupState.checkoutPopup && (
           <Popup popUpInfo="Check Out Successful">
             {checkOutTime && (
               <>
                 <p className="mt-2">You have successfully checked out at {checkOutTime.toLocaleTimeString()}</p>
-                <p>Total Work Hour: {totalTime}</p>
+                <p>Total Work Hour: {convertTime(Number(totalTime))}</p>
               </>
             )}
             <Button
-              onClick={() => setCheckoutPopup(false)}
+              onClick={() => setPopupState({ ...popupState, checkoutPopup: false })}
               className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
@@ -157,11 +131,11 @@ export const ShiftTracker = () => {
           </Popup>
         )}
 
-        {showPopup && (
+        {popupState.showPopup && (
           <Popup popUpInfo="Check In Successful">
             {checkInTime && <p className="mt-2">You checked in at {checkInTime.toLocaleTimeString()}</p>}
             <Button
-              onClick={() => setShowPopup(false)}
+              onClick={() => setPopupState({ ...popupState, showPopup: false })}
               className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
@@ -169,9 +143,9 @@ export const ShiftTracker = () => {
           </Popup>
         )}
 
-        {shiftPopup && (
+        {popupState.shiftPopup && (
           <Popup popUpInfo="Shift is over">
-            {checkInTime && <p className="mt-2">Total Shift Time: {shiftOverTime}</p>}
+            {checkInTime && <p className="mt-2">Total Shift Time: {convertTime(Number(totalTime))}</p>}
             <Button
               onClick={handleShiftPopup}
               className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
