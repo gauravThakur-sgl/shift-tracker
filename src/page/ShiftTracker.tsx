@@ -145,34 +145,34 @@ export const ShiftTracker = () => {
                   <p>Total Work Hour: {totalTime}</p>
                 </>
               )}
-              <button
+              <Button
                 onClick={() => setCheckoutPopup(false)}
                 className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Close
-              </button>
+              </Button>
             </Popup>
           )}
           {showPopup && (
             <Popup popUpInfo="Check In Successful">
               {checkInTime && <p className="mt-2">You checked in at {checkInTime.toLocaleTimeString()}</p>}
-              <button
+              <Button
                 onClick={() => setShowPopup(false)}
                 className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Close
-              </button>
+              </Button>
             </Popup>
           )}
           {shiftPopup && (
             <Popup popUpInfo="Shift is over">
               {checkInTime && <p className="mt-2">Total Shift Time: {shiftOverTime}</p>}
-              <button
+              <Button
                 onClick={handleShiftPopup}
                 className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Click to reset
-              </button>
+              </Button>
             </Popup>
           )}
         </div>
