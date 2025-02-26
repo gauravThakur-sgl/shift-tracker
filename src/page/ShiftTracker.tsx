@@ -1,3 +1,4 @@
+import { Popup } from "@/components/Popup";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
@@ -137,52 +138,42 @@ export const ShiftTracker = () => {
           </div>
 
           {checkoutPopup && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-all duration-300">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center py-10">
-                <p className="text-lg font-semibold">Check Out Successful</p>
-                {checkOutTime && (
-                  <>
-                    <p className="mt-2">You have successfully checked out at {checkOutTime.toLocaleTimeString()}</p>
-                    <p>Total Work Hour: {totalTime}</p>
-                  </>
-                )}
-                <button
-                  onClick={() => setCheckoutPopup(false)}
-                  className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <Popup popUpInfo="Check Out Successful">
+              {checkOutTime && (
+                <>
+                  <p className="mt-2">You have successfully checked out at {checkOutTime.toLocaleTimeString()}</p>
+                  <p>Total Work Hour: {totalTime}</p>
+                </>
+              )}
+              <button
+                onClick={() => setCheckoutPopup(false)}
+                className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </Popup>
           )}
-
           {showPopup && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-all duration-300">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center py-10">
-                <p className="text-lg font-semibold">Check In Successful</p>
-                {checkInTime && <p className="mt-2">You checked in at {checkInTime.toLocaleTimeString()}</p>}
-                <button
-                  onClick={() => setShowPopup(false)}
-                  className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <Popup popUpInfo="Check In Successful">
+              {checkInTime && <p className="mt-2">You checked in at {checkInTime.toLocaleTimeString()}</p>}
+              <button
+                onClick={() => setShowPopup(false)}
+                className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </Popup>
           )}
           {shiftPopup && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-all duration-300">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center py-10">
-                <p className="text-lg font-semibold">Shift is over</p>
-                {checkInTime && <p className="mt-2">Total Shift Time: {shiftOverTime}</p>}
-                <button
-                  onClick={handleShiftPopup}
-                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                >
-                  Click to reset
-                </button>
-              </div>
-            </div>
+            <Popup popUpInfo="Shift is over">
+              {checkInTime && <p className="mt-2">Total Shift Time: {shiftOverTime}</p>}
+              <button
+                onClick={handleShiftPopup}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Click to reset
+              </button>
+            </Popup>
           )}
         </div>
       </div>
