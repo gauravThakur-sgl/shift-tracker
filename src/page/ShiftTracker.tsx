@@ -53,7 +53,7 @@ export const ShiftTracker = () => {
 
       localStorage.setItem("checkOutTime", checkOut.toISOString());
 
-      if (Number(totalTime) / 1000 >= 9) {
+      if (Number(totalTime) / (1000 * 60 * 60) >= 9) {
         setIsShiftOver(true);
         localStorage.setItem("isShiftOver", String(isShiftOver));
         setPopupState({ ...popupState, checkoutPopup: true });
@@ -70,7 +70,6 @@ export const ShiftTracker = () => {
     setStatus("");
     setIsShiftOver(false);
     localStorage.setItem("isShiftOver", String(isShiftOver));
-
     setTotalTime("");
     localStorage.clear();
   };
@@ -79,6 +78,7 @@ export const ShiftTracker = () => {
     setPopupState({ ...popupState, shiftPopup: false });
     handleReset();
   };
+
   return (
     <div className="h-screen flex justify-center items-center">
       <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4 min-h-shift-tracker pb-10 max-w-screen-mobile">
