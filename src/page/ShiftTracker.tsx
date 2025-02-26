@@ -6,9 +6,8 @@ import { convertTime } from "@/utils/convertTime";
 import { useEffect, useState } from "react";
 
 export const ShiftTracker = () => {
-  const [checkInTime, setCheckInTime] = useState<Date | null>(null);
-  const [checkOutTime, setCheckOutTime] = useState<Date | null>(null);
-  const [status, setStatus] = useState("");
+  const [checkInTime, setCheckInTime] = useState<Date | string>("");
+  const [checkOutTime, setCheckOutTime] = useState<Date | string>("");
   const [totalTime, setTotalTime] = useState("");
   const [isShiftOver, setIsShiftOver] = useState(false);
   const [popupState, setPopupState] = useState({
@@ -18,9 +17,10 @@ export const ShiftTracker = () => {
   });
 
   useEffect(() => {
-    const savedCheckInTime = localStorage.getItem("checkInTime");
-    const savedCheckOutTime = localStorage.getItem("checkOutTime");
-    const savedIsShiftOver = localStorage.getItem("isShiftOver");
+    const savedCheckInTime = localStorage.getItem("intime");
+    const savedCheckOutTime = localStorage.getItem("outtime");
+    const savedIsShiftOver = localStorage.getItem("shiftover");
+
     if (savedCheckInTime) {
       setCheckInTime(new Date(savedCheckInTime));
     }
@@ -33,49 +33,46 @@ export const ShiftTracker = () => {
   }, []);
 
   const handleCheckIn = () => {
-    setPopupState({ ...popupState, showPopup: true });
+    setPopupState((prev) => ({ ...prev, showPopup: true }));
     const currentTime = new Date();
     setCheckInTime(currentTime);
-    localStorage.setItem("checkInTime", currentTime.toISOString());
+    localStorage.setItem("intime", currentTime.toISOString());
   };
 
   const handleCheckOut = () => {
     if (isShiftOver) {
-      setPopupState({ ...popupState, shiftPopup: true });
+      setPopupState((prev) => ({ ...prev, shiftPopup: true }));
       return;
     }
     if (checkInTime) {
-      const checkOut = new Date();
+      const checkOut = new Date();  // in ms
       setCheckOutTime(checkOut);
-
-      const timeDifference = checkOut.getTime() - checkInTime.getTime();
+      const timeDifference = checkOut.getTime() - new Date(checkInTime).getTime();
       setTotalTime(timeDifference.toString());
 
-      localStorage.setItem("checkOutTime", checkOut.toISOString());
+      localStorage.setItem("outtime", checkOut.toISOString());
 
-      if (Number(totalTime) / (1000 * 60 * 60) >= 9) {
+      const netShiftTime = Number(totalTime) / (1000 * 60 * 60); // net Shift time in hour
+
+      if (netShiftTime >= 9) {
         setIsShiftOver(true);
-        localStorage.setItem("isShiftOver", String(isShiftOver));
-        setPopupState({ ...popupState, checkoutPopup: true });
-        setStatus("");
-      } else {
-        setStatus(`Total elapsedTime : ${convertTime(timeDifference)}`);
+        localStorage.setItem("shiftover", String(isShiftOver));
+        setPopupState((prev) => ({ ...prev, checkoutPopup: true }));
       }
     }
   };
 
   const handleReset = () => {
-    setCheckInTime(null);
-    setCheckOutTime(null);
-    setStatus("");
+    setCheckInTime("");
+    setCheckOutTime("");
     setIsShiftOver(false);
-    localStorage.setItem("isShiftOver", String(isShiftOver));
+    localStorage.setItem("shiftover", String(isShiftOver));
     setTotalTime("");
     localStorage.clear();
   };
 
   const handleShiftPopup = () => {
-    setPopupState({ ...popupState, shiftPopup: false });
+    setPopupState((prev) => ({ ...prev, shiftPopup: false }));
     handleReset();
   };
 
@@ -88,20 +85,22 @@ export const ShiftTracker = () => {
 
         {checkInTime && (
           <InfoCard className="text-blue-800 bg-blue-50 border-blue-800">
-            CheckIn Time: {checkInTime.toLocaleTimeString()}
+            CheckIn Time: {new Date(checkInTime).toLocaleTimeString()}
           </InfoCard>
         )}
 
         {isShiftOver && (
           <InfoCard className="text-green-800 border-green-800 bg-green-50">
-            Last CheckOut Time: {checkOutTime?.toLocaleTimeString()}
+            Last CheckOut Time: {new Date(checkOutTime).toLocaleTimeString()}
           </InfoCard>
         )}
 
-        {status && (
+        {checkOutTime && (
           <InfoCard className="text-red-500 border-red-500 bg-red-50 font-medium flex flex-col justify-center">
             <span>Checkout Failed</span>
-            <span className="text-sm font-semibold  pt-2">{status}</span>
+            <span className="text-sm font-semibold  pt-2">{`Total elapsedTime : ${convertTime(
+              Number(totalTime),
+            )}`}</span>
           </InfoCard>
         )}
 
@@ -118,7 +117,9 @@ export const ShiftTracker = () => {
           <Popup popUpInfo="Check Out Successful">
             {checkOutTime && (
               <>
-                <p className="mt-2">You have successfully checked out at {checkOutTime.toLocaleTimeString()}</p>
+                <p className="mt-2">
+                  You have successfully checked out at {new Date(checkOutTime).toLocaleTimeString()}
+                </p>
                 <p>Total Work Hour: {convertTime(Number(totalTime))}</p>
               </>
             )}
@@ -133,9 +134,9 @@ export const ShiftTracker = () => {
 
         {popupState.showPopup && (
           <Popup popUpInfo="Check In Successful">
-            {checkInTime && <p className="mt-2">You checked in at {checkInTime.toLocaleTimeString()}</p>}
+            {checkInTime && <p className="mt-2">You checked in at {new Date(checkInTime).toLocaleTimeString()}</p>}
             <Button
-              onClick={() => setPopupState({ ...popupState, showPopup: false })}
+              onClick={() => setPopupState((prev) => ({ ...prev, showPopup: false }))}
               className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
