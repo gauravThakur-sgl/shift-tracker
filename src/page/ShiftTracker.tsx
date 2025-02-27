@@ -80,7 +80,7 @@ export const ShiftTracker = () => {
       setCheckOutTime(checkOut);
       localStorage.setItem("outtime", checkOut.toISOString());
 
-      const netShiftTime = Number(totalTime) / 1000; // net Shift time in hour
+      const netShiftTime = Number(totalTime) / (1000 * 60 * 60); // net Shift time in hour
 
       if (netShiftTime >= 9) {
         setIsShiftOver(true);
@@ -114,9 +114,9 @@ export const ShiftTracker = () => {
   const showLastCheckIn = lastcheckin && !checkInTime && !isShiftOver; // show last checkin time only when checkin time is not present and shift is not over
 
   return (
-    <div className="h-screen flex justify-center pt-20 pb-40 px-2">
-      <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4  max-w-screen-mobile">
-        <h3 className="text-2xl font-bold text-blue-800 text-center">Shift Tracker</h3>
+    <div className="h-screen flex justify-center pt-20 pb-40 px-2 bg-slate-100">
+      <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4 max-h-shift-tracker  max-w-screen-mobile ">
+        <h3 className="text-2xl font-bold text-blue-800 text-center mt-4">Shift Tracker</h3>
 
         <p className="text-center font-semibold my-2">Today's Date: {new Date().toLocaleDateString()}</p>
 
