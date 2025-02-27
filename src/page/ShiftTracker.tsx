@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 export const ShiftTracker = () => {
   const [checkInTime, setCheckInTime] = useState<Date | string>("");
   const [checkOutTime, setCheckOutTime] = useState<Date | string>("");
-  const [totalTime, setTotalTime] = useState("");
   const [isShiftOver, setIsShiftOver] = useState(false);
   const [popupState, setPopupState] = useState({
     showPopup: false,
@@ -39,17 +38,17 @@ export const ShiftTracker = () => {
     localStorage.setItem("intime", currentTime.toISOString());
   };
 
+  const totalTime =
+    checkInTime && checkOutTime ? (new Date(checkOutTime).getTime() - new Date(checkInTime).getTime()).toString() : "";
+
   const handleCheckOut = () => {
     if (isShiftOver) {
       setPopupState((prev) => ({ ...prev, shiftPopup: true }));
       return;
     }
     if (checkInTime) {
-      const checkOut = new Date();  // in ms
+      const checkOut = new Date(); // in ms
       setCheckOutTime(checkOut);
-      const timeDifference = checkOut.getTime() - new Date(checkInTime).getTime();
-      setTotalTime(timeDifference.toString());
-
       localStorage.setItem("outtime", checkOut.toISOString());
 
       const netShiftTime = Number(totalTime) / (1000 * 60 * 60); // net Shift time in hour
@@ -67,7 +66,6 @@ export const ShiftTracker = () => {
     setCheckOutTime("");
     setIsShiftOver(false);
     localStorage.setItem("shiftover", String(isShiftOver));
-    setTotalTime("");
     localStorage.clear();
   };
 
@@ -95,7 +93,7 @@ export const ShiftTracker = () => {
           </InfoCard>
         )}
 
-        {checkOutTime && (
+        {checkOutTime && !isShiftOver && (
           <InfoCard className="text-red-500 border-red-500 bg-red-50 font-medium flex flex-col justify-center">
             <span>Checkout Failed</span>
             <span className="text-sm font-semibold  pt-2">{`Total elapsedTime : ${convertTime(
