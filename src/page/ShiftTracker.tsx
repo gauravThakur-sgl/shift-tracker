@@ -9,15 +9,19 @@ export const ShiftTracker = () => {
   const [checkInTime, setCheckInTime] = useState<Date | string>("");
   const [checkOutTime, setCheckOutTime] = useState<Date | string>("");
   const [isShiftOver, setIsShiftOver] = useState(false);
+  const [lastcheckin, setLastCheckIn] = useState("");
   const [popupState, setPopupState] = useState({
     showPopup: false,
     checkoutPopup: false,
     shiftPopup: false,
+    resetPopup: false,
   });
+
   const savedData = {
     savedCheckInTime: localStorage.getItem("intime"),
     savedCheckOutTime: localStorage.getItem("outtime"),
     savedIsShiftOver: localStorage.getItem("shiftover"),
+    savedLastCheckIn: localStorage.getItem("lastcheckin"),
   };
   useEffect(() => {
     if (savedData.savedCheckInTime) {
@@ -29,13 +33,18 @@ export const ShiftTracker = () => {
     if (savedData.savedIsShiftOver) {
       setIsShiftOver(Boolean(savedData.savedIsShiftOver));
     }
-  }, [savedData.savedCheckInTime, savedData.savedCheckOutTime, savedData.savedIsShiftOver]);
+    if (savedData.savedLastCheckIn) {
+      setLastCheckIn(new Date(savedData.savedLastCheckIn).toLocaleTimeString());
+    }
+  }, [savedData.savedCheckInTime, savedData.savedCheckOutTime, savedData.savedIsShiftOver, savedData.savedLastCheckIn]);
 
   const handleCheckIn = () => {
+    setIsShiftOver(false);
     setPopupState((prev) => ({ ...prev, showPopup: true }));
     const currentTime = new Date();
     setCheckInTime(currentTime);
     localStorage.setItem("intime", currentTime.toISOString());
+    localStorage.setItem("lastcheckin", currentTime.toISOString());
   };
 
   const totalTime =
@@ -51,7 +60,7 @@ export const ShiftTracker = () => {
       setCheckOutTime(checkOut);
       localStorage.setItem("outtime", checkOut.toISOString());
 
-      const netShiftTime = Number(totalTime) / (1000 * 60 * 60); // net Shift time in hour
+      const netShiftTime = Number(totalTime) / 1000; // net Shift time in hour
 
       if (netShiftTime >= 9) {
         setIsShiftOver(true);
@@ -61,18 +70,28 @@ export const ShiftTracker = () => {
     }
   };
 
-  const handleReset = () => {
-    setCheckInTime("");
-    setCheckOutTime("");
-    setIsShiftOver(false);
-    localStorage.setItem("shiftover", String(isShiftOver));
-    localStorage.clear();
+  const confirmReset = () => {
+    setPopupState((prev) => ({ ...prev, resetPopup: true }));
   };
 
-  const handleShiftPopup = () => {
-    setPopupState((prev) => ({ ...prev, shiftPopup: false }));
-    handleReset();
+  const handleReset = () => {
+    setCheckOutTime("");
+    localStorage.setItem("shiftover", String(isShiftOver));
+    localStorage.removeItem("outtime");
+    localStorage.removeItem("shiftover");
+    localStorage.removeItem("intime");
+    setCheckInTime("");
+    setPopupState((prev) => ({ ...prev, resetPopup: false }));
   };
+
+  const handleShift = () => {
+    localStorage.removeItem("lastcheckin");
+    setLastCheckIn("");
+    handleReset();
+    setPopupState((prev) => ({ ...prev, checkoutPopup: false }));
+  };
+
+  const showLastCheckIn = lastcheckin && !checkInTime && !isShiftOver; // show last checkin time only when checkin time is not present and shift is not over
 
   return (
     <div className="h-screen flex justify-center items-center">
@@ -81,17 +100,18 @@ export const ShiftTracker = () => {
 
         <p className="text-center font-semibold my-2">Today's Date: {new Date().toLocaleDateString()}</p>
 
-        {checkInTime && (
+        {showLastCheckIn && (
+          <InfoCard className="text-purple-800 bg-purple-50 border-purple-800">
+            Last CheckIn Time: {lastcheckin}
+          </InfoCard>
+        )}
+
+        {checkInTime && !isShiftOver && (
           <InfoCard className="text-blue-800 bg-blue-50 border-blue-800">
             CheckIn Time: {new Date(checkInTime).toLocaleTimeString()}
           </InfoCard>
         )}
 
-        {isShiftOver && (
-          <InfoCard className="text-green-800 border-green-800 bg-green-50">
-            Last CheckOut Time: {new Date(checkOutTime).toLocaleTimeString()}
-          </InfoCard>
-        )}
 
         {checkOutTime && !isShiftOver && (
           <InfoCard className="text-red-500 border-red-500 bg-red-50 font-medium flex flex-col justify-center">
@@ -108,8 +128,22 @@ export const ShiftTracker = () => {
           ) : (
             <ButtonShift onClick={handleCheckIn} label="Check In" className="bg-blue-800 hover:bg-blue-700 " />
           )}
-          <ButtonShift onClick={handleReset} label="Reset" className="bg-red-500 hover:bg-red-600" />
+          <ButtonShift onClick={confirmReset} label="Reset" className="bg-red-500 hover:bg-red-600" />
         </div>
+
+        {popupState.resetPopup && (
+          <Popup popUpInfo="Are you sure you want to reset?" className="space-x-2">
+            <Button onClick={handleReset} className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+              Confirm
+            </Button>
+            <Button
+              onClick={() => setPopupState((prev) => ({ ...prev, resetPopup: false }))}
+              className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              Cancel
+            </Button>
+          </Popup>
+        )}
 
         {popupState.checkoutPopup && (
           <Popup popUpInfo="Check Out Successful">
@@ -122,7 +156,7 @@ export const ShiftTracker = () => {
               </>
             )}
             <Button
-              onClick={() => setPopupState({ ...popupState, checkoutPopup: false })}
+              onClick={handleShift}
               className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
@@ -138,18 +172,6 @@ export const ShiftTracker = () => {
               className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
-            </Button>
-          </Popup>
-        )}
-
-        {popupState.shiftPopup && (
-          <Popup popUpInfo="Shift is over">
-            {checkInTime && <p className="mt-2">Total Shift Time: {convertTime(Number(totalTime))}</p>}
-            <Button
-              onClick={handleShiftPopup}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-            >
-              Click to reset
             </Button>
           </Popup>
         )}
