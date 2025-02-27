@@ -10,6 +10,7 @@ export const ShiftTracker = () => {
   const [checkOutTime, setCheckOutTime] = useState<Date | string>("");
   const [isShiftOver, setIsShiftOver] = useState(false);
   const [lastcheckin, setLastCheckIn] = useState("");
+  const [timeLeft, setTimeLeft] = useState("");
   const [popupState, setPopupState] = useState({
     showPopup: false,
     checkoutPopup: false,
@@ -37,6 +38,25 @@ export const ShiftTracker = () => {
       setLastCheckIn(new Date(savedData.savedLastCheckIn).toLocaleTimeString());
     }
   }, [savedData.savedCheckInTime, savedData.savedCheckOutTime, savedData.savedIsShiftOver, savedData.savedLastCheckIn]);
+
+  useEffect(() => {
+    if (checkInTime && !isShiftOver) {
+      const interval = setInterval(() => {
+        const currentTime = new Date();
+        const checkIn = new Date(checkInTime);
+        const shiftDuration = 9 * 60 * 60 * 1000; // 9 hours in ms
+        const endTime = new Date(checkIn.getTime() + shiftDuration);
+        const remainingTime = endTime.getTime() - currentTime.getTime();
+        if (remainingTime > 0) {
+          setTimeLeft(convertTime(remainingTime));
+        } else {
+          setTimeLeft("Shift Over");
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [checkInTime, isShiftOver]);
 
   const handleCheckIn = () => {
     setIsShiftOver(false);
@@ -94,8 +114,8 @@ export const ShiftTracker = () => {
   const showLastCheckIn = lastcheckin && !checkInTime && !isShiftOver; // show last checkin time only when checkin time is not present and shift is not over
 
   return (
-    <div className="h-screen flex justify-center items-center">
-      <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4 min-h-shift-tracker pb-10 max-w-screen-mobile">
+    <div className="h-screen flex justify-center pt-20 pb-40 px-2">
+      <div className="shadow-md rounded-md m-2 border flex flex-col justify-start w-full gap-2 p-4  max-w-screen-mobile">
         <h3 className="text-2xl font-bold text-blue-800 text-center">Shift Tracker</h3>
 
         <p className="text-center font-semibold my-2">Today's Date: {new Date().toLocaleDateString()}</p>
@@ -106,12 +126,22 @@ export const ShiftTracker = () => {
           </InfoCard>
         )}
 
+        {checkInTime && (
+          <div className="flex justify-between items-center pb-4">
+            <p className="font-semibold text-blue-800">Time Remaining</p>
+            {timeLeft && (
+              <span className="rounded-full px-4 p-1 border border-green-800 text-green-800 bg-green-50 text-sm font-semibold shadow-md">
+                {timeLeft.replace("hour", "h :").replace("minutes", "m :").replace("seconds", "s")}
+              </span>
+            )}
+          </div>
+        )}
+
         {checkInTime && !isShiftOver && (
           <InfoCard className="text-blue-800 bg-blue-50 border-blue-800">
             CheckIn Time: {new Date(checkInTime).toLocaleTimeString()}
           </InfoCard>
         )}
-
 
         {checkOutTime && !isShiftOver && (
           <InfoCard className="text-red-500 border-red-500 bg-red-50 font-medium flex flex-col justify-center">
