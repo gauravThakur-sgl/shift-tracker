@@ -14,20 +14,21 @@ export const ShiftTracker = () => {
     checkoutPopup: false,
     shiftPopup: false,
   });
-
+  const savedData = {
+    savedCheckInTime: localStorage.getItem("intime"),
+    savedCheckOutTime: localStorage.getItem("outtime"),
+    savedIsShiftOver: localStorage.getItem("shiftover"),
+  }
   useEffect(() => {
-    const savedCheckInTime = localStorage.getItem("intime");
-    const savedCheckOutTime = localStorage.getItem("outtime");
-    const savedIsShiftOver = localStorage.getItem("shiftover");
-
-    if (savedCheckInTime) {
-      setCheckInTime(new Date(savedCheckInTime));
+    
+    if (savedData.savedCheckInTime) {
+      setCheckInTime(new Date(savedData.savedCheckInTime));
     }
-    if (savedCheckOutTime) {
-      setCheckOutTime(new Date(savedCheckOutTime));
+    if (savedData.savedCheckOutTime) {
+      setCheckOutTime(new Date(savedData.savedCheckOutTime));
     }
-    if (savedIsShiftOver) {
-      setIsShiftOver(Boolean(savedIsShiftOver));
+    if (savedData.savedIsShiftOver) {
+      setIsShiftOver(Boolean(savedData.savedIsShiftOver));
     }
   }, []);
 
