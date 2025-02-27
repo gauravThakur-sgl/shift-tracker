@@ -5,6 +5,7 @@ const urlsToCache = [
   '/manifest.json',
   '/clock.svg',
 ];
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -15,23 +16,27 @@ self.addEventListener('install', (event) => {
       })
   );
 });
+
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    clients.claim(),
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (!cacheWhitelist.includes(cacheName)) {
+              console.log('Deleting outdated cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });
 
-sself.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (event.request.url.endsWith('.js') || event.request.url.endsWith('.css')) {
@@ -44,7 +49,9 @@ sself.addEventListener('fetch', (event) => {
           }
           return response;
         });
-      }).catch(() => cachedResponse);
+      }).catch(() => {
+        return cachedResponse;
+      });
     })
   );
 });
