@@ -31,13 +31,20 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
+sself.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (event.request.url.endsWith('.js') || event.request.url.endsWith('.css')) {
-          return cachedResponse || fetch(event.request);
-        }
-      })
+    caches.match(event.request).then((cachedResponse) => {
+      if (event.request.url.endsWith('.js') || event.request.url.endsWith('.css')) {
+        return cachedResponse || fetch(event.request);
+      }
+      return fetch(event.request).then((response) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          if (event.request.url.startsWith('/api/')) {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        });
+      }).catch(() => cachedResponse);
+    })
   );
 });
