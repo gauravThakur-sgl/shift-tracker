@@ -18,9 +18,8 @@ export const ShiftTracker = () => {
     savedCheckInTime: localStorage.getItem("intime"),
     savedCheckOutTime: localStorage.getItem("outtime"),
     savedIsShiftOver: localStorage.getItem("shiftover"),
-  }
+  };
   useEffect(() => {
-    
     if (savedData.savedCheckInTime) {
       setCheckInTime(new Date(savedData.savedCheckInTime));
     }
@@ -30,7 +29,7 @@ export const ShiftTracker = () => {
     if (savedData.savedIsShiftOver) {
       setIsShiftOver(Boolean(savedData.savedIsShiftOver));
     }
-  }, []);
+  }, [savedData.savedCheckInTime, savedData.savedCheckOutTime, savedData.savedIsShiftOver]);
 
   const handleCheckIn = () => {
     setPopupState((prev) => ({ ...prev, showPopup: true }));
