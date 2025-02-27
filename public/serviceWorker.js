@@ -7,7 +7,6 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -16,42 +15,25 @@ self.addEventListener('install', (event) => {
       })
   );
 });
-
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    Promise.all([
-      clients.claim(),
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (!cacheWhitelist.includes(cacheName)) {
-              console.log('Deleting outdated cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-    ])
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (event.request.url.endsWith('.js') || event.request.url.endsWith('.css')) {
-        return cachedResponse || fetch(event.request);
-      }
-      return fetch(event.request).then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          if (event.request.url.startsWith('/api/')) {
-            cache.put(event.request, response.clone());
-          }
-          return response;
-        });
-      }).catch(() => {
-        return cachedResponse;
-      });
-    })
+    caches.match(event.request)
+      .then((response) => {
+        return response || fetch(event.request);
+      })
   );
 });
