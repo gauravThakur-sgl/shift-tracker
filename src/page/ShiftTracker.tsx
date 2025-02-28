@@ -1,8 +1,10 @@
 import { ButtonShift } from "@/components/ButtonShift";
 import { InfoCard } from "@/components/InfoCard";
 import { Popup } from "@/components/Popup";
+import { RemainingTime } from "@/components/RemainingTime";
 import { Button } from "@/components/ui/button";
 import { convertTime } from "@/utils/convertTime";
+import { startShiftTimer } from "@/utils/shiftTimer";
 import { useEffect, useState } from "react";
 
 export const ShiftTracker = () => {
@@ -40,22 +42,10 @@ export const ShiftTracker = () => {
   }, [savedData.savedCheckInTime, savedData.savedCheckOutTime, savedData.savedIsShiftOver, savedData.savedLastCheckIn]);
 
   useEffect(() => {
-    if (checkInTime && !isShiftOver) {
-      const interval = setInterval(() => {
-        const currentTime = new Date();
-        const checkIn = new Date(checkInTime);
-        const shiftDuration = 9 * 60 * 60 * 1000; // 9 hours in ms
-        const endTime = new Date(checkIn.getTime() + shiftDuration);
-        const remainingTime = endTime.getTime() - currentTime.getTime();
-        if (remainingTime > 0) {
-          setTimeLeft(convertTime(remainingTime));
-        } else {
-          setTimeLeft("Shift Over");
-          clearInterval(interval);
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
+    const cleanup = startShiftTimer(new Date(checkInTime), isShiftOver, setTimeLeft, convertTime);
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, [checkInTime, isShiftOver]);
 
   const handleCheckIn = () => {
@@ -126,16 +116,7 @@ export const ShiftTracker = () => {
           </InfoCard>
         )}
 
-        {checkInTime && (
-          <div className="flex justify-between items-center pb-4">
-            <p className="font-semibold text-blue-800">Time Remaining</p>
-            {timeLeft && (
-              <span className="rounded-full px-4 p-1 border border-green-800 text-green-800 bg-green-50 text-sm font-semibold shadow-md">
-                {timeLeft.replace("hour", "h :").replace("minutes", "m :").replace("seconds", "s")}
-              </span>
-            )}
-          </div>
-        )}
+        {checkInTime && <RemainingTime timeLeft={timeLeft} />}
 
         {checkInTime && !isShiftOver && (
           <InfoCard className="text-blue-800 bg-blue-50 border-blue-800">
